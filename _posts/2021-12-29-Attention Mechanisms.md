@@ -129,15 +129,15 @@ Its implementaion with python and tensorflow looks as the following:
 
 ```python
 class LuongGeneralAttention(tf.keras.layers.Layer):
-    def __init__(self):
+    def __init__(self, size):
         super(LuongGeneralAttention, self).__init__()
-        self.W = tf.keras.layers.Dense(1)
+        self.W = tf.keras.layers.Dense(size)
 
     def call(self, query, values):
         query_with_time_axis = tf.expand_dims(query, 1)
-        values_transposed = tf.transpose(values, perm=[0, 2, 1])
+        values_transposed = tf.transpose(self.W(values), perm=[0, 2, 1])
         #LUONGH General
-        score = self.W(tf.matmul(query_with_time_axis, values_transposed))
+        score = tf.transpose(tf.matmul(query_with_time_axis, values_transposed), perm=[0, 2, 1])
         attention_weights = tf.nn.softmax(score, axis=1)
 
         c = attention_weights * values
