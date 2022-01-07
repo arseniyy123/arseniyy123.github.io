@@ -50,7 +50,6 @@ Its implementaion with python and tensorflow looks as the following:
 
 ```python
 class BahdanauAttention(tf.keras.layers.Layer):
-    
     def __init__(self, units):
         super(BahdanauAttention, self).__init__()
         self.W1 = tf.keras.layers.Dense(units)
@@ -59,13 +58,14 @@ class BahdanauAttention(tf.keras.layers.Layer):
 
 
     def call(self, query, values):
-        
         query_with_time_axis = tf.expand_dims(query, 1)
-
+        # Bahdanau score
         score = self.V(tf.nn.tanh(self.W1(query_with_time_axis) + self.W2(values)))
 
+        # attention_weights shape == (batch_size, max_length, 1)
         attention_weights = tf.nn.softmax(score, axis=1)
-
+        
+        # context_vector shape after sum == (batch_size, hidden_size)
         context_vector = attention_weights * values
         context_vector = tf.reduce_sum(context_vector, axis=1)
 
@@ -104,8 +104,7 @@ class LuongDotAttention(tf.keras.layers.Layer):
     def call(self, query, values):
         query_with_time_axis = tf.expand_dims(query, 1)
         values_transposed = tf.transpose(values, perm=[0, 2, 1])
-
-        # LUONGH Dot-product
+        # LUONG Dot-product
         score = tf.transpose(tf.matmul(query_with_time_axis, 
                                        values_transposed), perm=[0, 2, 1])
 
@@ -136,10 +135,12 @@ class LuongGeneralAttention(tf.keras.layers.Layer):
     def call(self, query, values):
         query_with_time_axis = tf.expand_dims(query, 1)
         values_transposed = tf.transpose(self.W(values), perm=[0, 2, 1])
-        #LUONGH General
+        # LUONG General
         score = tf.transpose(tf.matmul(query_with_time_axis, values_transposed), perm=[0, 2, 1])
+        # attention_weights shape == (batch_size, max_length, 1)
         attention_weights = tf.nn.softmax(score, axis=1)
-
+        
+        # context_vector shape after sum == (batch_size, hidden_size)
         c = attention_weights * values
         context_vector = tf.reduce_sum(c, axis=1)
         return context_vector, attention_weights
